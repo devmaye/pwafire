@@ -1,80 +1,72 @@
 ## Install pwafire via NPM
 
 ```bash
-npm i pwafire
+npm i pwafire --save
 ```
 
-### Import pwafire in your react app
+### Get pwafire over CDN as an E6 Module
+
+```js
+import pwafire from "https://unpkg.com/pwafire/esm/index.js";
+const pwa = pwafire.pwa;
+```
+
+### Import pwafire in your for e.g React App
 
 ```js
 import pwafire from "pwafire";
 const pwa = pwafire.pwa;
 ```
 
-### Require the pwafire npm package
+All stable in **Chrome 80** and later versions, also in **MS Edge**. Check [Browser Support](https://pwafire.org/developer/tools/browser-test/) status.
+
+### API Spec
+
+For promise types, the promise value returned is an object
 
 ```js
-const pwafire = require("pwafire");
-const pwa = pwafire.pwa;
+// Success...
+{ type: 'success', message: 'Copied' }
+ // Fail...
+{ type: 'fail', error };
 ```
 
-All stable in **Chrome 80** and later versions, also in **MS Edge**. Check [Browser Support](https://pwafire.org/developer/tools/browser-test/) status.
+#### Do something with the promise value returned for e.g copyText;
+
+```js
+// Copy text
+pwa.copyText(text).then((res) => {
+  // Do something with 'res'
+  if (res.type === "success") {
+    // Success...
+  }
+});
+```
 
 ### 1. Copy Text
 
-Copy text to clipboard
+Copy text to clipboard.
 
-#### Copy from a single element
+#### Copy text to clipboard
 
 ```js
-// Define styles of the success message as a string
-const styles = ``;
-// Copy from a single element
-const element = document.getElementById("copy");
 // Copy text
-pwa.copyText(element, styles);
+pwa.copyText(text);
 ```
 
-#### Copy from multiple elements
-
-```js
-//  Copy from multiple elements
-const elements = document.querySelectorAll(".copy");
-for (let el of elements) {
-  // Copy text
-  pwa.copyText(el, styles);
-}
-```
-
-### 2. Copy image (Only PNG are supported for security purposes)
+### 2. Copy image (Only PNG are supported for security purposes) to clipboard
 
 Copy png images to clipboard
-
-#### Add the image element or copy element(button)
-
-```js
-const img = document.getElementById("copy-image");
-const imgURL = img.src;
-```
 
 #### Call the copyImage method on pwa
 
 ```js
-img.addEventListener("click", (event) => {
-  event.preventDefault();
-  pwa.copyImage(imgURL);
-});
+pwa.copyImage(imgURL);
 ```
 
 ### 3. Web Share
 
 Share links, text, and files to other apps installed on the device.
-
-#### Add the share element(button)
-
-```js
-const element = document.getElementById("share-button");
-```
 
 #### Define the data object to be shared
 
@@ -92,18 +84,14 @@ const data = {
 #### Call the share method on pwa
 
 ```js
-pwa.Share(element, data);
+pwa.Share(data);
 ```
 
 ### 4. Contacts Picker
 
-[Contacts Picker API](https://github.com/pwafire/pwafire/tree/master/bundle/contact-picker) allows a PWA to access contacts from the device's native contacts manager. **Chrome 77** or higher running on **Android M or later** required.
+[Contacts Picker API](https://github.com/pwafire/pwafire/tree/master/bundle/contact-picker) allows a PWA to access contacts from the mobile device's native contacts manager.
 
-#### Add the contact picker element(button)
-
-```js
-const element = document.getElementById("contacts-picker");
-```
+**Chrome 80** or higher running on **Android M or later** required.
 
 #### Define the "properties" and "select type" option you need
 
@@ -112,12 +100,15 @@ const props = ["name", "email", "tel"];
 const options = { multiple: true };
 ```
 
-#### Call the contacts method on pwa, it returns selected contacts
+#### Call the contacts method on pwa, the promise resolves with an object
 
 ```js
-pwa.Contacts(element, props, options);
-// You can save the return value in a variable...
-const contacts = pwa.Contacts(element, props, options);
+// Do something with the promise value...
+pwa.Contacts(props, options).then((res) => {
+  // Do something with contacts...
+  const contacts = res.type === "success" ? res.contacts : null;
+  //...
+});
 ```
 
 ### 5. Show PWA Connectivity status
@@ -147,16 +138,10 @@ pwa.Connectivity(online, offline);
 
 Open app in fullscreen on a click event
 
-#### Add the specific element(e.g button)
-
-```js
-const element = document.getElementById("fullscreen-button");
-```
-
 #### Call the fullscreen method
 
 ```js
-pwa.Fullscreen(element);
+pwa.Fullscreen();
 ```
 
 ### 7. Notifications
@@ -179,61 +164,95 @@ const data = {
 #### Call the notification method, pass in `data` object, for e.g
 
 ```js
-// Add an event listener to a button element...
-const notification = document.getElementById("notification");
-notification.addEventListener("click", (event) => {
-  // Call the notification method...
-  pwa.Notification(data);
-});
+// Call the notification method...
+pwa.Notification(data);
 ```
 
 ### 8. Install
 
-Add custom install button
-
-#### Add the specific element(e.g button)
-
-```js
-const element = document.getElementById("install");
-```
+Add custom install button, provide a "button element" as the parameter
 
 #### Call the install method
 
 ```js
-pwa.Install(element);
+pwa.Install(button);
 ```
 
-#### 9. Visibility
+### 9. Badging
+
+#### Add badging for app icons
+
+Badging makes it easy to subtly notify the user that there is some new activity that might require their attention, or indicate a small amount of information, such as an unread count.
+
+##### Set the badge
+
+Returns an object, which is either a success or an error type
+
+```js
+// Set the badge
+const unreadCount = 24;
+pwa.setBadge(unreadCount);
+```
+
+##### Clear the badge
+
+```js
+// Clear the badge
+pwa.clearBadge();
+```
+
+### 10. Screen Wake Lock API
+
+The Screen Wake Lock API provides a way to prevent devices from dimming or locking the screen when an application needs to keep running.
+
+#### Call the install method, returns a promise value
+
+```js
+pwa.WakeLock();
+```
+
+### 11. Visibility
 
 Check if user is viewing a page. Pause/play video or games e.t.c
 
-##### Define page visibilty handler
+#### Define page visibilty handler
 
 ```js
 // Do something....
 const isVisible = () => {
   //...
-  console.log(`Page Visibility Available`);
 };
 ```
 
-##### If visbility api is not supported, define the handler
+#### If visbility api is not supported, define the handler
 
 ```js
 // Do something....
 const notAvailable = () => {
   //...
-  console.log(`Page Visibility Not Available`);
 };
 ```
 
-##### Call the visibility method with the two arguments
+#### Call the visibility method with the two arguments
 
 ```js
 pwa.Visibility(isVisible, notAvailable);
 ```
 
-### 10. Web Payments
+### 12. The File System Access API : Pick and read Text Files
+
+_The File System Access API_ allows web apps to read or save changes directly to files and folders on the user's device.
+
+#### Call the pick-text-file method on pwa
+
+The promise resolves with a text response(contents of the picked text file)
+
+```js
+// Do something with the contents...
+const contents = await pwa.pickTextFile();
+```
+
+### 13. Web Payments
 
 Allows users select their preferred way of **paying for things**, and make that information
 available to **a merchant.**
@@ -241,16 +260,20 @@ available to **a merchant.**
 #### Call Payment method with three arguments
 
 ```js
-let paymentResponse = pwa.Payment(pay, paydata, validatePayment);
+pwa.Payment(pay, paydata, validatePayment);
 ```
 
 #### Example : compute total amount to pay
 
+Test Demo Application : [Live Preview](https://webpay.glitch.me/)
+
 ```js
 // Calculations...
 const payment = {
-  price: 1,
-  discount: 1,
+  price: sale_price,
+  get discount() {
+    return this.price * 0.005;
+  },
   get total() {
     return this.price + this.tax - this.discount;
   },
@@ -260,7 +283,7 @@ const payment = {
 };
 
 // Destructure payment object...
-const { price, tax, discount, total } = payment;
+const { tax, discount, total } = payment;
 ```
 
 #### Set Payment methods
@@ -284,30 +307,25 @@ const paymentDetails = {
     label: "Total Amount",
     amount: {
       currency: "KSH",
-      value: total
-    }
+      value: total.toString(),
+    },
   },
-```
-
-#### Set other items to display
-
-```js
-displayItems: [
+  displayItems: [
     {
       label: "Discount",
       amount: {
         currency: "KSH",
-        value: discount
-      }
+        value: discount.toString(),
+      },
     },
     {
       label: "Taxes, 14% V.A.T",
       amount: {
         currency: "KSH",
-        value: tax
-      }
-    }
-  ]
+        value: tax.toString(),
+      },
+    },
+  ],
 };
 ```
 
@@ -330,10 +348,10 @@ const paydata = {
 };
 ```
 
-#### Validate payment
+#### Validate payment (Do something with the Payment Response)
 
 ```js
-const validatePayment = paymentResponse => {
+const validatePayment = (paymentResponse) => {
   // Destructure to get payment responses
   const { details, shippingAddress, shippingOption } = paymentResponse;
 
@@ -343,7 +361,7 @@ const validatePayment = paymentResponse => {
     cardSecurityCode,
     cardholderName,
     expiryMonth,
-    expiryYear
+    expiryYear,
   } = details;
 
   // Destructure to get billing address...
@@ -356,8 +374,8 @@ const validatePayment = paymentResponse => {
     phone,
     postalCode,
     recipient,
-    re.gion,
-    sortingCode
+    region,
+    sortingCode,
   } = details.billingAddress;
 
   // Validate...
@@ -374,8 +392,9 @@ const validatePayment = paymentResponse => {
 };
 ```
 
-### Call Payment method, returns a payment response
+#### Call Payment method on pwa
 
 ```js
-const paymentResponse = pwa.Payment(pay, paydata, validatePayment);
+// Pay...
+pwa.Payment(paydata, validatePayment);
 ```
